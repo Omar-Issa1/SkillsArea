@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
-
 // routes
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
@@ -22,16 +21,13 @@ app.use(express.json());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/courses", courseRoutes);
-// test route
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
 
 // not found
 app.use(notFound);
 
 // error handler
 app.use(errorHandler);
+// start server
 const start = async () => {
   try {
     await connectDB();
