@@ -5,7 +5,7 @@ import connectDB from "./config/db.js";
 // routes
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
-
+import courseRoutes from "./routes/courses.js";
 // middlewares
 import errorHandler from "./middlewares/errorHandler.js";
 import notFound from "./middlewares/not-found.js";
@@ -21,6 +21,7 @@ app.use(express.json());
 // routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/courses", courseRoutes);
 // test route
 app.get("/", (req, res) => {
   res.send("API is running...");
@@ -31,7 +32,6 @@ app.use(notFound);
 
 // error handler
 app.use(errorHandler);
-console.log("JWT:", process.env.JWT_SECRET);
 const start = async () => {
   try {
     await connectDB();
