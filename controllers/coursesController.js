@@ -76,3 +76,90 @@ export const getMyCourses = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateProgress = async (req, res, next) => {
+  try {
+    const { courseId, videoId } = req.body;
+
+    const user = await User.findById(req.user.id);
+    const course = await Course.findById(courseId);
+
+    if (!user || !course) {
+      return res.status(404).json({ message: "User or course not found" });
+    }
+
+    
+    const userCourse = user.courses.find(
+      (c) => c.courseId.toString() === courseId
+    );
+
+    if (!userCourse) {
+      return res.status(404).json({ message: "Course not assigned to user" });
+    }
+
+    if (!userCourse.completedVideos.includes(videoId)) {
+      userCourse.completedVideos.push(videoId);
+    }
+
+    const totalVideos = course.videos.length;
+    const completed = userCourse.completedVideos.length;
+
+    userCourse.progress = Math.round((completed / totalVideos) * 100);
+
+    await user.save();
+
+    res.json({
+      message: "Progress updated",
+      progress: userCourse.progress,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+export const getAllCourses = async (req, res, next) => {
+  try {
+    const courses = await Course.find();
+
+    res.json({ courses });
+
+  } catch (error) {
+    next(error);
+  }
+};
+export const updateCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const course = await Course.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.json({ course });
+
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteCourse = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const course = await Course.findByIdAndDelete(id);
+
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    res.json({ message: "Course deleted" });
+
+  } catch (error) {
+    next(error);
+  }
+};

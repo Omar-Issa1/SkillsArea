@@ -35,3 +35,49 @@ export const createUser = async (req, res, next) => {
     next(error);
   }
 };
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().select("-password -refreshToken");
+
+    res.json({ users });
+
+  } catch (error) {
+    next(error);
+  }
+};
+export const updateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ user });
+
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User deleted" });
+
+  } catch (error) {
+    next(error);
+  }
+};
