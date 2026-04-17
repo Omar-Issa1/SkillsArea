@@ -8,14 +8,16 @@ import {
   getMyCourses,
   updateProgress,
   createCourse,
-   getAllCourses,
+  getAllCourses,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  getCourses,
 } from "../controllers/coursesController.js";
 
 // admin only
 router.post("/", authentication, authorize("admin"), createCourse);
 router.get("/", authentication, authorize("admin"), getAllCourses);
+router.get("/", authentication, authorize("admin"), getCourses);
 router.put("/:id", authentication, authorize("admin"), updateCourse);
 router.delete("/:id", authentication, authorize("admin"), deleteCourse);
 router.post("/assign", authentication, authorize("admin"), assignCourse);

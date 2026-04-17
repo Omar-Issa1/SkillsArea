@@ -1,14 +1,18 @@
 import Course from "../models/course.js";
 import User from "../models/User.js";
+import { fetchPlaylistVideos } from "../utils/youtube.js";
 
 export const createCourse = async (req, res, next) => {
   try {
     const { title, description, playlistId } = req.body;
 
+    const videos = await fetchPlaylistVideos(playlistId);
+
     const course = await Course.create({
       title,
       description,
       playlistId,
+      videos,
       createdBy: req.user.id,
     });
 
@@ -88,9 +92,8 @@ export const updateProgress = async (req, res, next) => {
       return res.status(404).json({ message: "User or course not found" });
     }
 
-    
     const userCourse = user.courses.find(
-      (c) => c.courseId.toString() === courseId
+      (c) => c.courseId.toString() === courseId,
     );
 
     if (!userCourse) {
@@ -112,7 +115,6 @@ export const updateProgress = async (req, res, next) => {
       message: "Progress updated",
       progress: userCourse.progress,
     });
-
   } catch (error) {
     next(error);
   }
@@ -122,7 +124,6 @@ export const getAllCourses = async (req, res, next) => {
     const courses = await Course.find();
 
     res.json({ courses });
-
   } catch (error) {
     next(error);
   }
@@ -131,18 +132,16 @@ export const updateCourse = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const course = await Course.findByIdAndUpdate(
-      id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const course = await Course.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
     res.json({ course });
-
   } catch (error) {
     next(error);
   }
@@ -158,7 +157,47 @@ export const deleteCourse = async (req, res, next) => {
     }
 
     res.json({ message: "Course deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+export const getCourses = async (req, res, next) => {
+  try {
+    let { q, page = 1, limit = 10, createdBy } = req.query;
 
+    page = Number(page);
+    limit = Number(limit);
+
+    if (limit > 50) limit = 50;
+
+    const queryObject = {};
+
+    if (q) {
+      queryObject.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    if (createdBy) {
+      queryObject.createdBy = createdBy;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const courses = await Course.find(queryObject)
+      .skip(skip)
+      .limit(limit)
+      .sort("-createdAt");
+
+    const total = await Course.countDocuments(queryObject);
+
+    res.json({
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      courses,
+    });
   } catch (error) {
     next(error);
   }
